@@ -146,9 +146,7 @@ function warehouseStuff(resp){
 }
 
 function piracyStuff(resp) {
-  selfConsole.log(JSON.parse(resp));
   var resp = JSON.parse(resp);
-  
   var highscore = JSON.parse(resp[2][1]['load_js']['params'])['highscore'];
     
   var i = 0;
