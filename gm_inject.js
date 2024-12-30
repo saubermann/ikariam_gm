@@ -1,3 +1,5 @@
+var fancyVersion = "1.1";
+
 var i = document.createElement('iframe');
 i.style.display = 'none';
 document.body.appendChild(i);
@@ -10,6 +12,7 @@ function ViewInjector (){
 	//	barbarianVillage: barbarenStuff,
 		//militaryAdvisor: militaryAdvisorStuff,
 		pirateFortress: piracyStuff,
+    wonder: wonderStuff,
 		default: function(v){
 			selfConsole.log("No Injector defined for view: " + v);
 			}
@@ -24,39 +27,63 @@ ViewInjector.prototype.inject = function(v, b){
 		this.injectors["default"](v);
 	}
 
-  if(v){
+  var backgroundView = getBackgroundView();
+
+  if(v && backgroundView == "city"){
     generalBuildingStuff();
+  }
+
+  if (backgroundView == 'island'){
+      generalIslandStuff();
   }
 }
 
 var viewInjector = new ViewInjector();
 
-selfConsole.log ("Defined: " + typeof window.ikariam);
-
 function isViewAvailable(){
   return ikariam && ikariam.templateView && ikariam.templateView.id;
 }
 
-try{ 
+function getBackgroundView(){
+  return ikariam?.controller?.ikariam?.backgroundView?.id || ''; 
+}
+
+try { 
   ajax.Responder._parseResponse = ajax.Responder.parseResponse;
   ajax.Responder.parseResponse = function(r){
     //selfConsole.log(JSON.parse(r));
     ajax.Responder._parseResponse(r);
     
-    if (isViewAvailable()){
+    //if (isViewAvailable()){
       try{
-        viewInjector.inject(ikariam.templateView.id, r);
+        var view = ikariam?.templateView?.id || '';
+        viewInjector.inject(view, r);
       } catch(e){
         selfConsole.log("Failed to inject view:", e);
       }
-    }
+    //}    
   }
+
+  viewInjector.inject('newPageLoad');
+
+  var jIkariamVersion = jQuery("#GF_toolbar .version span");
+  jIkariamVersion.html(jIkariamVersion.html() + ` (GM: ${fancyVersion})`);
+
 } catch(e){
   selfConsole.log(e);
 }
 
 
 /* Injector Functions */
+
+function generalIslandStuff(){
+  var cities = ikariam.controller.ikariam.backgroundView.screen.data.cities;
+  cities.forEach(function (city, i){
+        var jCity = jQuery("#js_cityLocation" + i + "TitleText");
+        var cityName = city.name + " [<b>" + city.ownerName + "</b>]";
+        jCity.html(cityName);
+      });
+}
 
 function generalBuildingStuff(){
   var jBuilding = jQuery("#buildingUpgrade");
@@ -134,6 +161,15 @@ function generalBuildingStuff(){
     return container;
     }
   }
+}
+
+function wonderStuff(){
+  var totalPercentage = jQuery("#wonderOtherPlayers .table01 tr td:nth-child(6)").map(function(){
+    var percentage = jQuery(this).html().replace("%", "").replace(",", ".");
+    return parseFloat(percentage);
+  }).toArray().reduce((a, b) => a + b, 0);
+
+  jQuery("#wonderOtherPlayers .table01 tbody").append("<tr><td></td><td></td><td></td><td></td><td><b>Total:</b></td><td><b>" + totalPercentage.toString().replace(".", ",") + "%</b></td></tr>");
 }
 
 function warehouseStuff(resp){
