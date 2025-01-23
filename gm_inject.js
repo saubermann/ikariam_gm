@@ -90,13 +90,13 @@ function generalBuildingStuff(){
   if(jBuilding.length > 0 && jQuery('#accordionResourceContainer').length == 0){
     var jResource = jQuery("#buildingUpgrade").find(".resources");
     var wood = parseResource('wood');
-    var marble = parseResource('marble');
     var wine = parseResource('wine');
+    var marble = parseResource('marble');
     var crystal = parseResource('crystal');
     var sulfur = parseResource('sulfur');
     var total = 5;
     
-    var container = getResourceContainer(wood,marble,wine,crystal,sulfur,total);
+    var container = getResourceContainer(wood,wine,marble,crystal,sulfur,total);
     jQuery("#sidebarWidget li:first-child.accordionItem").after(container);
 
     function parseResource(resource){
