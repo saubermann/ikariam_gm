@@ -1,66 +1,74 @@
-var fancyVersion = "1.1";
+/*
+Features:
+   - Display previous day score in piracy fortress
+   - Sum up building costs in building view
+   - Display exact numbers in warehouse and dump
+   - Display exact numbers in building help
+   - Sum up total conversion in wonder
+*/
+
+var fancyVersion = "1.2";
 
 var i = document.createElement('iframe');
 i.style.display = 'none';
 document.body.appendChild(i);
 selfConsole = i.contentWindow.console;
 
-function ViewInjector (){
-	this.injectors = {
+function ViewInjector() {
+  this.injectors = {
     warehouse: warehouseStuff,
     dump: warehouseStuff,
-	//	barbarianVillage: barbarenStuff,
-		//militaryAdvisor: militaryAdvisorStuff,
-		pirateFortress: piracyStuff,
+    buildingDetail: buildingDetailStuff,
+    pirateFortress: piracyStuff,
     wonder: wonderStuff,
-		default: function(v){
-			selfConsole.log("No Injector defined for view: " + v);
-			}
-	}
+    default: function (v) {
+      selfConsole.log("No Injector defined for view: " + v);
+    }
+  }
 }
 
-ViewInjector.prototype.inject = function(v, b){
-	selfConsole.log("Injected View: " + v);
-	if (this.injectors[v] !== undefined){
-		this.injectors[v](b);
-	} else{
-		this.injectors["default"](v);
-	}
+ViewInjector.prototype.inject = function (v, b) {
+  selfConsole.log("Injected View: " + v);
+  if (this.injectors[v] !== undefined) {
+    this.injectors[v](b);
+  } else {
+    this.injectors["default"](v);
+  }
 
   var backgroundView = getBackgroundView();
 
-  if(v && backgroundView == "city"){
+  if (v && backgroundView == "city") {
     generalBuildingStuff();
   }
 
-  if (backgroundView == 'island'){
-      generalIslandStuff();
+  if (backgroundView == 'island') {
+    generalIslandStuff();
   }
 }
 
 var viewInjector = new ViewInjector();
 
-function isViewAvailable(){
+function isViewAvailable() {
   return ikariam && ikariam.templateView && ikariam.templateView.id;
 }
 
-function getBackgroundView(){
-  return ikariam?.controller?.ikariam?.backgroundView?.id || ''; 
+function getBackgroundView() {
+  return ikariam?.controller?.ikariam?.backgroundView?.id || '';
 }
 
-try { 
+try {
   ajax.Responder._parseResponse = ajax.Responder.parseResponse;
-  ajax.Responder.parseResponse = function(r){
+  ajax.Responder.parseResponse = function (r) {
     //selfConsole.log(JSON.parse(r));
     ajax.Responder._parseResponse(r);
-    
+
     //if (isViewAvailable()){
-      try{
-        var view = ikariam?.templateView?.id || '';
-        viewInjector.inject(view, r);
-      } catch(e){
-        selfConsole.log("Failed to inject view:", e);
-      }
+    try {
+      var view = ikariam?.templateView?.id || '';
+      viewInjector.inject(view, r);
+    } catch (e) {
+      selfConsole.log("Failed to inject view:", e);
+    }
     //}    
   }
 
@@ -69,25 +77,25 @@ try {
   var jIkariamVersion = jQuery("#GF_toolbar .version span");
   jIkariamVersion.html(jIkariamVersion.html() + ` (GM: ${fancyVersion})`);
 
-} catch(e){
+} catch (e) {
   selfConsole.log(e);
 }
 
 
 /* Injector Functions */
 
-function generalIslandStuff(){
+function generalIslandStuff() {
   var cities = ikariam.controller.ikariam.backgroundView.screen.data.cities;
-  cities.forEach(function (city, i){
-        var jCity = jQuery("#js_cityLocation" + i + "TitleText");
-        var cityName = city.name + " [<b>" + city.ownerName + "</b>]";
-        jCity.html(cityName);
-      });
+  cities.forEach(function (city, i) {
+    var jCity = jQuery("#js_cityLocation" + i + "TitleText");
+    var cityName = city.name + " [<b>" + city.ownerName + "</b>]";
+    jCity.html(cityName);
+  });
 }
 
-function generalBuildingStuff(){
+function generalBuildingStuff() {
   var jBuilding = jQuery("#buildingUpgrade");
-  if(jBuilding.length > 0 && jQuery('#accordionResourceContainer').length == 0){
+  if (jBuilding.length > 0 && jQuery('#accordionResourceContainer').length == 0) {
     var jResource = jQuery("#buildingUpgrade").find(".resources");
     var wood = parseResource('wood');
     var wine = parseResource('wine');
@@ -95,25 +103,25 @@ function generalBuildingStuff(){
     var crystal = parseResource('crystal');
     var sulfur = parseResource('sulfur');
     var total = 5;
-    
-    var container = getResourceContainer(wood,wine,marble,crystal,sulfur,total);
+
+    var container = getResourceContainer(wood, wine, marble, crystal, sulfur, total);
     jQuery("#sidebarWidget li:first-child.accordionItem").after(container);
 
-    function parseResource(resource){
+    function parseResource(resource) {
       var text = jResource.find("." + resource).attr("title");
-  
-      if(text){
+
+      if (text) {
         text = text.split(":");
-        return text.length > 1? text[1].trim(): "0";
+        return text.length > 1 ? text[1].trim() : "0";
       }
-  
+
       return "0";
     }
 
-    function getResourceContainer(wood, wine, marble, crystal, sulfur){
+    function getResourceContainer(wood, wine, marble, crystal, sulfur) {
       var total = [wood, wine, marble, crystal, sulfur].map(x => parseInt(x.replace(/\./g, '')));
       total = total.reduce((a, b) => a + b, 0).toLocaleString("de-DE");
-    
+
       var container = `<li id="accordionResourceContainer" class="accordionItem"><a class="accordionTitle active">Benötigte Rohstoffe<span class="indicator"></span></a>
         <div class="accordionContent">
             <div id="informationSidebar" class="dynamic">
@@ -157,14 +165,14 @@ function generalBuildingStuff(){
             </div>
         </div>
     </li>`;
-    
-    return container;
+
+      return container;
     }
   }
 }
 
-function wonderStuff(){
-  var totalPercentage = jQuery("#wonderOtherPlayers .table01 tr td:nth-child(6)").map(function(){
+function wonderStuff() {
+  var totalPercentage = jQuery("#wonderOtherPlayers .table01 tr td:nth-child(6)").map(function () {
     var percentage = jQuery(this).html().replace("%", "").replace(",", ".");
     return parseFloat(percentage);
   }).toArray().reduce((a, b) => a + b, 0);
@@ -172,26 +180,35 @@ function wonderStuff(){
   jQuery("#wonderOtherPlayers .table01 tbody").append("<tr><td></td><td></td><td></td><td></td><td><b>Total:</b></td><td><b>" + totalPercentage.toString().replace(".", ",") + "%</b></td></tr>");
 }
 
-function warehouseStuff(resp){
-  jQuery("[id^=js_total_],[id^=js_capacity_],[id^=js_plunderable_]").each(function (){
-     var data = jQuery(this).find(".tooltip").html();
-     if(data){
+function warehouseStuff(resp) {
+  jQuery("[id^=js_total_],[id^=js_capacity_],[id^=js_plunderable_]").each(function () {
+    var data = jQuery(this).find(".tooltip").html();
+    if (data) {
       jQuery(this).html(data);
-     }
+    }
+  });
+}
+
+function buildingDetailStuff(resp) {
+  jQuery("#buildingDetail table.table01 td.costs div").each(function () {
+    var data = jQuery(this).find(".tooltip").html();
+    if (data) {
+      jQuery(this).html(data);
+    }
   });
 }
 
 function piracyStuff(resp) {
   var resp = JSON.parse(resp);
   var highscore = JSON.parse(resp[2][1]['load_js']['params'])['highscore'];
-    
+
   var i = 0;
-  $('#pirateHighscore li').each(function() {
+  $('#pirateHighscore li').each(function () {
     var place = $(this)['0'].getElementsByTagName('span')[0];
-		console.log(highscore[i]);
+    console.log(highscore[i]);
     oldPlace = highscore[i]['oldPlace'];
-		place.innerHTML = '<a href="/?view=island&cityId=' + highscore[i]['cityId'] + '">' + place.innerHTML;
+    place.innerHTML = '<a href="/?view=island&cityId=' + highscore[i]['cityId'] + '">' + place.innerHTML;
     place.innerHTML += '</a> <small style="font-size: 11px;">[' + oldPlace + ']</small>';
-    i++;                     
+    i++;
   });
 }
