@@ -1,4 +1,4 @@
-var fancyVersion = "1.3";
+var fancyVersion = "1.3.1";
 
 var i = document.createElement('iframe');
 i.style.display = 'none';
@@ -16,6 +16,8 @@ function ViewInjector (){
     wonder: wonderStuff,
     highscore: highscoreStuff,
     highscoreAlly: highscoreStuff,
+    barracks: unitStuff,
+    shipyard: unitStuff, 
 		default: function(v){
 			selfConsole.log("No Injector defined for view: " + v);
 			}
@@ -78,6 +80,15 @@ try {
 
 
 /* Injector Functions */
+
+function unitStuff(){
+  if(jQuery('#unitConstructionList').length > 0){
+    setTimeout(function(){
+      var endDate = new Date(ikariam.getScreen().unitCountdown.enddate).toLocaleString('de',).replace(',', '');
+      jQuery('#unitBuildCountDown').after('<div class="smallFont">' + endDate + '</div>')
+    }, 500);
+  }
+}
 
 function highscoreStuff(){
   jQuery(".table01.highscore td.score").each(function (){
