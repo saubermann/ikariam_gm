@@ -1,4 +1,153 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Piracy API Demo</title>
+    <!-- jQuery (used for the REST call) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css">
+    <!-- DataTables JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        padding: 1.5rem;
+        /* max-width: 700px; */
+        margin: 0 auto;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      #result {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background: #fafafa;
+        white-space: pre-wrap;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+      #scoresTable {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      #scoresTable td {
+        vertical-align: top;
+        padding: 10px;
+      }
+      .nested-table {
+        width: 100% !important;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Piracy Scores</h1>
 
-  <p>Hello World</p>
+    <button id="fetchScoresBtn" type="button">Fetch Scores</button>
+
+    <div id="result" aria-live="polite">Click the button to call the REST API.</div>
+
+    <table id="scoresTable" class="display" style="width:100%; display:none;">
+      <thead>
+        <tr id="headerRow">
+        </tr>
+      </thead>
+      <tbody>
+        <tr id="dataRow">
+        </tr>
+      </tbody>
+    </table>
+
+    <script>
+      $(document).ready(function () {
+        var $result = $("#result");
+
+        function showResult(text) {
+          $result.text(text);
+        }
+
+        function showError(error) {
+          var message = "Error fetching scores: " + (error && error.statusText ? error.statusText : error);
+          $result.text(message);
+        }
+
+        $("#fetchScoresBtn").on("click", function () {
+          showResult("Loading...");
+
+          $.ajax({
+            url: "https://mediasolutionsdemo6.service-now.com/api/x_29168_ikariam/piracy/getScores",
+            method: "GET",
+            dataType: "json",
+            success: function (data) {
+              
+              data = data.result;
+              // Hide the JSON result and show the table
+              $result.hide();
+              $("#scoresTable").show();
+
+              // Clear previous data
+              $("#headerRow").empty();
+              $("#dataRow").empty();
+
+              // Process the data - filter out empty arrays and create columns
+              var nonEmptyArrays = data.filter(function(arr) {
+                return arr.length > 0;
+              });
+
+              // Create header row with IDs
+              nonEmptyArrays.forEach(function(arr, index) {
+                var originalIndex = data.indexOf(arr);
+                $("#headerRow").append('<th>' + arr[0].date + '</th>');
+              });
+
+              // Create data row with nested tables
+              nonEmptyArrays.forEach(function(arr, index) {
+                var tableHtml = '<table class="nested-table display" style="width:100%;">';
+                tableHtml += '<thead><tr>';
+                tableHtml += '<th>Place</th>';
+                tableHtml += '<th>Capture Points</th>';
+                tableHtml += '<th>User</th>';
+                tableHtml += '<th>City</th>';
+                tableHtml += '<th>Island</th>';
+                tableHtml += '</tr></thead>';
+                tableHtml += '<tbody>';
+
+                arr.forEach(function(row) {
+                  tableHtml += '<tr>';
+                  tableHtml += '<td>' + (row.place || '') + '</td>';
+                  tableHtml += '<td>' + (row.capture_points || '') + '</td>';
+                  
+                  tableHtml += '<td>' + '<a target="_blank" href="https://s74-de.ikariam.gameforge.com/?view=avatarProfile&avatarId=' + row.userId + '">' + (row.user || '') + '</a>' + '</td>';
+                  tableHtml += '<td>' + '<a target="_blank" href="https://s74-de.ikariam.gameforge.com/?view=island&cityId=' + row.cityId + '">' + (row.city || '') + '</a>' + '</td>';
+                  tableHtml += '<td>' + '<a target="_blank" href="https://s74-de.ikariam.gameforge.com/?view=island&islandId=' + row.islandId + '">' + (row.island || '') + '</a>' + '</td>';
+                  
+                  tableHtml += '</tr>';
+                });
+
+                tableHtml += '</tbody></table>';
+                $("#dataRow").append('<td>' + tableHtml + '</td>');
+              });
+
+              // Initialize DataTables on all nested tables
+              $('.nested-table').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                responsive: true,
+                autoWidth: false
+              });
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+              showError(jqXHR && jqXHR.responseText ? jqXHR.responseText : textStatus || errorThrown);
+            },
+          });
+        });
+      });
+    </script>
+  </body>
 </html>
