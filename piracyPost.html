@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submit Score Manually</title>
+  <!-- jQuery (used for the AJAX call) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 640px; margin: 40px auto; }
+    textarea { width: 100%; height: 120px; margin-bottom: 12px; }
+    button { padding: 10px 16px; font-size: 1rem; }
+    #status { margin-top: 12px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Post Score to ServiceNow API</h1>
+  <form id="scoreForm">
+    <label for="payload">Score payload (plain text):</label>
+    <textarea id="payload" name="payload" placeholder="Enter your content here..." required></textarea>
+    <button type="submit">Submit</button>
+  </form>
+  <div id="status"></div>
+
+  <script>
+    $(function () {
+      var $status = $('#status');
+
+      $('#scoreForm').on('submit', function (event) {
+        event.preventDefault();
+
+        var text = $('#payload').val().trim();
+        if (!text) {
+          $status.text('Payload is empty.');
+          return;
+        }
+
+        $status.text('Sending...');
+
+        var data = JSON.stringify({ payload: text });
+
+        $.ajax({
+          url: 'https://mediasolutionsdemo6.service-now.com/api/x_29168_ikariam/piracy/postScoreManually',
+          type: 'POST',
+          contentType: 'application/json',
+          data: data,
+          dataType: 'json',
+          success: function (result) {
+            $status.text('Success!\n' + result);
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            var errText = jqXHR.responseText || errorThrown || textStatus;
+            $status.text('Error ' + jqXHR.status + ': ' + jqXHR.statusText + '\n' + errText);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
