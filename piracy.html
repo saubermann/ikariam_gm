@@ -42,12 +42,35 @@
       .nested-table {
         width: 100% !important;
       }
+
+      /* DNW, KNW */
+      .ally-76, .ally-78 {
+        background-color: #ffe6e6 !important;
+      }
+      /* WAR */
+      .ally-1 {
+        background-color: #cce7ff !important;
+      }
+      /* B-P */
+      .ally-70 {
+        background-color: #e6ffe6 !important;
+      }
+      /* Support Accounts */
+      .support-account {
+        background-color: #e6e6b3 !important;
+        font-style: italic;
+      }
     </style>
   </head>
   <body>
     <h1>Piracy Scores</h1>
 
     <button id="fetchScoresBtn" type="button">Fetch Scores</button>
+  <!--
+  <div id="filters" style="margin-top: 1rem; display: none;">
+    <label><input type="checkbox" id="ignorePiracyFilter" checked> Ignore Piracy</label>
+  </div>
+    -->
 
     <div id="result" aria-live="polite">Click the button to call the REST API.</div>
 
@@ -85,9 +108,10 @@
             success: function (data) {
               
               data = data.result;
-              // Hide the JSON result and show the table
+              // Hide the JSON result and show the table and filters
               $result.hide();
               $("#scoresTable").show();
+              $("#filters").show();
 
               // Clear previous data
               $("#headerRow").empty();
@@ -117,7 +141,14 @@
                 tableHtml += '<tbody>';
 
                 arr.forEach(function(row) {
-                  tableHtml += '<tr>';
+                  if (row.allyId) {
+                    tableHtml += '<tr class="ally-' + row.allyId + '">';
+                  } else if (row.isSupportAccount) {
+                    tableHtml += '<tr class="support-account">';
+                  } else {
+                    tableHtml += '<tr>';
+                  }
+                  
                   tableHtml += '<td>' + (row.place || '') + '</td>';
                   tableHtml += '<td>' + (row.capture_points || '') + '</td>';
                   
@@ -141,6 +172,9 @@
                 responsive: true,
                 autoWidth: false
               });
+
+              // Apply initial filtering
+              applyFilters();
             },
             error: function (jqXHR, textStatus, errorThrown) {
               showError(jqXHR && jqXHR.responseText ? jqXHR.responseText : textStatus || errorThrown);
