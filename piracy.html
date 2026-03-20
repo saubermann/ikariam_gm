@@ -66,11 +66,10 @@
     <h1>Piracy Scores</h1>
 
     <button id="fetchScoresBtn" type="button">Fetch Scores</button>
-  <!--
+
   <div id="filters" style="margin-top: 1rem; display: none;">
-    <label><input type="checkbox" id="ignorePiracyFilter" checked> Ignore Piracy</label>
+    <label><input type="checkbox" id="ignorePiracyFilter" checked> Ignore blocked accounts</label>
   </div>
-    -->
 
     <div id="result" aria-live="polite">Click the button to call the REST API.</div>
 
@@ -142,11 +141,11 @@
 
                 arr.forEach(function(row) {
                   if (row.allyId) {
-                    tableHtml += '<tr class="ally-' + row.allyId + '">';
+                    tableHtml += '<tr class="ally-' + row.allyId + '" data-ignore-piracy="' + (row.ignore_piracy ? 'true' : 'false') + '">';
                   } else if (row.isSupportAccount) {
-                    tableHtml += '<tr class="support-account">';
+                    tableHtml += '<tr class="support-account" data-ignore-piracy="' + (row.ignore_piracy ? 'true' : 'false') + '">';
                   } else {
-                    tableHtml += '<tr>';
+                    tableHtml += '<tr data-ignore-piracy="' + (row.ignore_piracy ? 'true' : 'false') + '">';
                   }
                   
                   tableHtml += '<td>' + (row.place || '') + '</td>';
@@ -180,6 +179,27 @@
               showError(jqXHR && jqXHR.responseText ? jqXHR.responseText : textStatus || errorThrown);
             },
           });
+        });
+
+        // Filter function for ignore piracy checkbox
+        function applyFilters() {
+          var ignorePiracy = $("#ignorePiracyFilter").is(":checked");
+          
+          $(".nested-table tbody tr").each(function() {
+            var $row = $(this);
+            var ignorePiracyValue = $row.attr("data-ignore-piracy") === "true";
+            
+            if (ignorePiracy && ignorePiracyValue) {
+              $row.hide();
+            } else {
+              $row.show();
+            }
+          });
+        }
+
+        // Attach change event to checkbox
+        $("#ignorePiracyFilter").on("change", function() {
+          applyFilters();
         });
       });
     </script>
