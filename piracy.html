@@ -4,41 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Piracy API Demo</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- jQuery (used for the REST call) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
     <!-- Tabulator CSS -->
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet" />
     <!-- Tabulator JS -->
     <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-      body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        padding: 1.5rem;
-        /* max-width: 700px; */
-        margin: 0 auto;
-      }
-      button {
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-      #result {
-        margin-top: 1rem;
-        padding: 1rem;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        background: #fafafa;
-        white-space: pre-wrap;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      }
-      #scoresTable {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      #scoresTable td {
-        vertical-align: top;
-        padding: 10px;
-      }
       .nested-table {
         width: 100% !important;
       }
@@ -60,33 +36,64 @@
         background-color: #e6e6b3 !important;
         font-style: italic;
       }
+
+      /* Responsive adjustments for smaller displays */
+      @media (max-width: 768px) {
+        .container {
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+        body {
+          padding: 0.5rem;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Piracy Scores</h1>
+    <div class="container mt-4">
+      <h1>Piracy Scores</h1>
 
-    <button id="fetchScoresBtn" type="button">Fetch Scores</button>
+      <div class="row mb-3">
+        <div class="col-md-3">
+          <label for="fromDate" class="form-label">From Date:</label>
+          <input type="date" id="fromDate" class="form-control" />
+        </div>
+        <div class="col-md-3">
+          <label for="untilDate" class="form-label">Until Date:</label>
+          <input type="date" id="untilDate" class="form-control" />
+        </div>
+        <div class="col-md-6">
+          <label for="userName" class="form-label">User Name:</label>
+          <input type="text" id="userName" class="form-control" />
+        </div>
+      </div>
 
-    <div style="margin-top: 1rem;">
-      <label for="userName">User Name:</label>
-      <input type="text" id="userName" style="margin-left: 0.5rem; padding: 0.25rem;" />
+      <div class="mb-3">
+        <button id="fetchScoresBtn" type="button" class="btn btn-primary">Fetch Scores</button>
+      </div>
+
+      <div id="result" class="alert alert-info" aria-live="polite" style="display:none;">Click the button to call the REST API.</div>
     </div>
 
-  <div id="filters" style="margin-top: 1rem; display: none;">
-    <label><input type="checkbox" id="ignorePiracyFilter" checked> Ignore blocked accounts</label>
-  </div>
-
-    <div id="tableControls" style="margin-top: 1rem; display:none;">
-      <label>
-        Filter all fields:
-        <input type="text" id="globalFilter" placeholder="Search dataset..." style="width: 240px; margin: 0 8px;" />
-      </label>
-      <button id="clearFilterBtn" type="button">Clear</button>
+    <div id="tableControls" class="container-fluid mb-3" style="display:none;">
+      <div class="row">
+        <div class="col-md-4">
+          <label for="globalFilter" class="form-label">Filter all fields:</label>
+          <input type="text" id="globalFilter" class="form-control" placeholder="Search dataset..." />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <div class="form-check">
+            <input type="checkbox" id="ignorePiracyFilter" class="form-check-input" checked>
+            <label for="ignorePiracyFilter" class="form-check-label">Ignore blocked accounts</label>
+          </div>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button id="clearFilterBtn" type="button" class="btn btn-secondary">Clear</button>
+        </div>
+      </div>
     </div>
 
-    <div id="tablesContainer" style="margin-top: 1rem; display:none;"></div>
-
-    <div id="result" aria-live="polite">Click the button to call the REST API.</div>
+    <div id="tablesContainer" class="mb-3" style="display:none;"></div>
 
     <script>
       $(function() {
@@ -98,6 +105,23 @@
         $userName.on('input', function() {
           localStorage.setItem('ikariam.userName', $(this).val());
         });
+
+        // Set default dates based on time
+        var now = new Date();
+        var hour = now.getHours();
+        var minute = now.getMinutes();
+        var defaultDate;
+        if (hour < 18 || (hour === 18 && minute < 2)) {
+          // Before 18:02, use yesterday
+          var yesterday = new Date(now);
+          yesterday.setDate(now.getDate() - 1);
+          defaultDate = yesterday.toISOString().split('T')[0];
+        } else {
+          // After 18:02, use today
+          defaultDate = now.toISOString().split('T')[0];
+        }
+        $("#fromDate").val(defaultDate);
+        $("#untilDate").val(defaultDate);
 
         function showResult(text) {
           $result.show().text(text);
@@ -119,8 +143,57 @@
           return numeric.toLocaleString('de-DE');
         }
 
+        function normalizeDateForApi(dateStr) {
+          if (!dateStr) {
+            return "";
+          }
+          // Accept already correct yyyy-mm-dd and normalize any other formats
+          var match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (match) {
+            return dateStr;
+          }
+          var d = new Date(dateStr);
+          if (isNaN(d.getTime())) {
+            return dateStr;
+          }
+          var y = d.getFullYear();
+          var m = String(d.getMonth() + 1).padStart(2, '0');
+          var day = String(d.getDate()).padStart(2, '0');
+          return y + '-' + m + '-' + day;
+        }
+
         function flattenData(source) {
           var rows = [];
+
+          if (!Array.isArray(source) || source.length === 0) {
+            return rows;
+          }
+
+          // Flat array format: each entry is a record object
+          if (source.every(function(item) { return item && typeof item === 'object' && !Array.isArray(item); })) {
+            source.forEach(function(item) {
+              rows.push({
+                date: item.date || "",
+                place: item.place != null ? Number(item.place) : null,
+                capture_points: item.capture_points != null ? Number(item.capture_points) : null,
+                points: item.capture_points != null ? formatNumber(item.capture_points) : "",
+                user: item.user || "",
+                city: item.city || "",
+                island: item.island || "",
+                userLink: item.userId ? 'https://s74-de.ikariam.gameforge.com/?view=avatarProfile&avatarId=' + item.userId : "",
+                cityLink: item.cityId ? 'https://s74-de.ikariam.gameforge.com/?view=island&cityId=' + item.cityId : "",
+                islandLink: item.islandId ? 'https://s74-de.ikariam.gameforge.com/?view=island&islandId=' + item.islandId : "",
+                allyId: item.allyId || "",
+                ignore_piracy: !!item.ignore_piracy,
+                support: !!item.isSupportAccount,
+                captured_by: item.captured_by || "",
+                sys_id: item.sys_id || ""
+              });
+            });
+            return rows;
+          }
+
+          // Nested array format: each item is a group array
           source.forEach(function(group) {
             if (!Array.isArray(group) || group.length === 0) {
               return;
@@ -146,31 +219,26 @@
               });
             });
           });
+
           return rows;
         }
 
-        var tableInstances = [];
+        function createTable(rows) {
+          var tableId = 'scoresTable';
+          var $tableDiv = $('<div>').attr('id', tableId).addClass('table-responsive');
+          $('#tablesContainer').empty().append($tableDiv);
 
-        function createTableForGroup(groupDate, rows, index) {
-          var tableId = 'groupTable_' + index;
-          var tableLabelId = 'groupLabel_' + index;
-
-          var $groupHeader = $('<div style="margin-top:1.5rem; font-weight:bold;">').attr('id', tableLabelId).text('Date: ' + groupDate + ' (' + rows.length + ' rows)');
-          var $tableDiv = $('<div>').attr('id', tableId).css('margin-bottom', '1rem');
-
-          $('#tablesContainer').append($groupHeader).append($tableDiv);
-
-          var groupTable = new Tabulator('#' + tableId, {
+          table = new Tabulator('#' + tableId, {
             data: rows,
             layout: 'fitColumns',
-            height: '320px',
+            height: '600px',
             columns: [
+              { title: 'Date', field: 'date', sorter: 'string', width: 100 },
               { title: 'Place', field: 'place', sorter: 'number', hozAlign: 'right', width: 80 },
               { title: 'Points', field: 'capture_points', sorter: 'number', hozAlign: 'right', formatter: function(cell){ return formatNumber(cell.getValue()); } },
               { title: 'User', field: 'user', sorter: 'string', formatter: function(cell){ var value = cell.getValue(); var link = cell.getData().userLink; return link ? '<a target="_blank" href="'+link+'">'+value+'</a>' : value; } },
               { title: 'City', field: 'city', sorter: 'string', formatter: function(cell){ var value = cell.getValue(); var link = cell.getData().cityLink; return link ? '<a target="_blank" href="'+link+'">'+value+'</a>' : value; } },
               { title: 'Island', field: 'island', sorter: 'string', formatter: function(cell){ var value = cell.getValue(); var link = cell.getData().islandLink; return link ? '<a target="_blank" href="'+link+'">'+value+'</a>' : value; } },
-              /*{ title: 'Ally ID', field: 'allyId', sorter: 'number', hozAlign: 'center', width: 80 },*/
               { title: 'Ignored', field: 'ignore_piracy', sorter: 'boolean', formatter: 'tickCross', hozAlign: 'center', width: 90 },
               { title: 'Captured By', field: 'captured_by', sorter: 'string', formatter: function(cell){ var data = cell.getData(); if (data.captured_by) { return data.captured_by; } else { return '<input type="checkbox" class="mark-complete" data-sys-id="' + data.sys_id + '" />'; } }, hozAlign: 'center', width: 120 }
             ],
@@ -185,7 +253,7 @@
             }
           });
 
-          groupTable.on('renderComplete', function(){
+          table.on('renderComplete', function(){
             $('#' + tableId + ' input.mark-complete').on('change', function(){
               var sysId = $(this).data('sys-id');
               var userName = $userName.val().trim();
@@ -211,14 +279,14 @@
             });
           });
 
-          return groupTable;
+          return table;
         }
 
         function refreshFilters() {
           var query = $("#globalFilter").val().trim().toLowerCase();
           var ignorePiracy = $("#ignorePiracyFilter").is(":checked");
 
-          tableInstances.forEach(function(table) {
+          if (table) {
             table.setFilter(function(data) {
               if (ignorePiracy && data.ignore_piracy) {
                 return false;
@@ -233,7 +301,7 @@
                 return String(value).toLowerCase().indexOf(query) > -1;
               });
             });
-          });
+          }
         }
 
         $("#globalFilter").on("input", refreshFilters);
@@ -246,8 +314,20 @@
         $("#fetchScoresBtn").on("click", function () {
           showResult("Loading...");
 
+          var fromDate = $("#fromDate").val();
+          var untilDate = $("#untilDate").val();
+
           var urlParams = new URLSearchParams(window.location.search);
           var apiUrl = urlParams.get('debug') === 'true' ? 'piracy_score.json' : 'https://mediasolutionsdemo6.service-now.com/api/x_29168_ikariam/piracy/getScores';
+
+          if (fromDate || untilDate) {
+            var params = new URLSearchParams();
+            var fromToSend = normalizeDateForApi(fromDate);
+            var untilToSend = normalizeDateForApi(untilDate);
+            if (fromToSend) params.append('from', fromToSend);
+            if (untilToSend) params.append('until', untilToSend);
+            apiUrl += '?' + params.toString();
+          }
 
           $.ajax({
             url: apiUrl,
@@ -256,29 +336,22 @@
             success: function (data) {
               var sourceData = data.result || [];
 
-              var nonEmptyGroups = sourceData.filter(function(group) {
-                return Array.isArray(group) && group.length > 0;
-              });
+              var allRows = flattenData(sourceData);
 
-              if (nonEmptyGroups.length === 0) {
+              if (allRows.length === 0) {
                 showResult("No data returned from API.");
                 return;
               }
 
               $("#result").hide();
-              $("#tablesContainer").empty().show();
+              $("#tablesContainer").show();
               $("#tableControls").show();
-              $("#filters").show();
 
-              tableInstances.forEach(function(t) { t.destroy(); });
-              tableInstances = [];
+              if (table) {
+                table.destroy();
+              }
 
-              nonEmptyGroups.forEach(function(group, index) {
-                var groupRows = flattenData([group]);
-                var groupDate = group[0] ? group[0].date : ('Group ' + (index + 1));
-                var table = createTableForGroup(groupDate, groupRows, index);
-                tableInstances.push(table);
-              });
+              table = createTable(allRows);
 
               refreshFilters();
             },
