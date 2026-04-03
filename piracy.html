@@ -47,6 +47,22 @@
           padding: 0.5rem;
         }
       }
+
+      body, html {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      #tablesContainer {
+        min-height: 600px;
+        height: calc(100vh - 300px);
+        overflow: hidden;
+      }
+
+      .tabulator {
+        height: 100% !important;
+      }
     </style>
   </head>
   <body>
@@ -231,7 +247,7 @@
           table = new Tabulator('#' + tableId, {
             data: rows,
             layout: 'fitColumns',
-            height: '600px',
+            height: '100%',
             columns: [
               { title: 'Date', field: 'date', sorter: 'string', width: 100 },
               { title: 'Place', field: 'place', sorter: 'number', hozAlign: 'right', width: 80 },
