@@ -107,6 +107,10 @@
           <button id="clearFilterBtn" type="button" class="btn btn-secondary">Clear</button>
         </div>
       </div>
+      <div class="row">
+        <div class="col-md-4" id="recordCount">
+        </div>
+      </div>
     </div>
 
     <div id="tablesContainer" class="mb-3" style="display:none;"></div>
@@ -365,6 +369,8 @@
               $("#result").hide();
               $("#tablesContainer").show();
               $("#tableControls").show();
+
+              $("#recordCount").html("Total Records: " + allRows.length);
 
               if (table) {
                 table.destroy();
