@@ -282,7 +282,7 @@
                 return;
               }
               $.ajax({
-                url: 'https://mediasolutionsdemo6.service-now.com/api/x_29168_ikariam/piracy/markComplete',
+                url: 'https://dev297418.service-now.com/api/x_29168_ikariam/piracy/markComplete',
                 method: 'POST',
                 data: JSON.stringify({ sys_id: sysId, captured_by: userName }),
                 contentType: 'application/json',
@@ -341,7 +341,7 @@
           var untilDate = $("#untilDate").val();
 
           var urlParams = new URLSearchParams(window.location.search);
-          var apiUrl = urlParams.get('debug') === 'true' ? 'piracy_score.json' : 'https://mediasolutionsdemo6.service-now.com/api/x_29168_ikariam/piracy/getScores';
+          var apiUrl = urlParams.get('debug') === 'true' ? 'piracy_score.json' : 'https://dev297418.service-now.com/api/x_29168_ikariam/piracy/getScores';
 
           if (fromDate || untilDate) {
             var params = new URLSearchParams();
