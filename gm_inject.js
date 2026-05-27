@@ -264,7 +264,7 @@ function piracyStuff(resp) {
     jQuery("#gm_sync_score").on("click", function () {
             $.ajax({
         type: "POST",
-        url: "https://mediasolutionsdemo6.service-now.com/api/x_29168_ikariam/piracy/postScore",
+        url: "https://dev297418.service-now.com/api/x_29168_ikariam/piracy/postScore",
         data: JSON.stringify(highscore),
         dataType: "json",            // fix
         contentType: "application/json",
