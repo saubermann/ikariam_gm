@@ -1,4 +1,4 @@
-var fancyVersion = "1.3.3";
+var fancyVersion = "1.3.4";
 
 var i = document.createElement("iframe");
 i.style.display = "none";
@@ -86,15 +86,15 @@ try {
 
 function multipleStepStuff(){
   
-ajaxHandlerCall(jQuery("#GF_toolbar a[title='Highscore']").attr("href"));
+ajaxHandlerCall(jQuery("#GF_toolbar a[title='Highscore']").attr("href"), function(){});
 
-ajaxHandlerCall(jQuery("#js_GlobalMenu_ambrosia").attr("href"));
-ajaxHandlerCall("?view=inventory");
+ajaxHandlerCall(jQuery("#js_GlobalMenu_ambrosia").attr("href"), function(){});
+ajaxHandlerCall("?view=inventory", function(){});
 
 // ajaxHandlerCall(jQuery("#js_CityPosition17Link").attr("href"));
 
-ajaxHandlerCall("?action=PiracyScreen&function=capture&buildingLevel=17&view=pirateFortress&cityId=" + ikariam.getScreen().screenId + "&position=17");
-
+ajaxHandlerCall("?action=PiracyScreen&function=capture&buildingLevel=17&view=pirateFortress&cityId=" + ikariam.getScreen().screenId + "&position=17", function(){});
+ajaxHandlerCall("?view=dailyTasks");
 }
 
 function unitStuff() {
