@@ -1,4 +1,4 @@
-var fancyVersion = "1.3.2";
+var fancyVersion = "1.3.3";
 
 var i = document.createElement("iframe");
 i.style.display = "none";
@@ -73,11 +73,29 @@ try {
 
   var jIkariamVersion = jQuery("#GF_toolbar .version span");
   jIkariamVersion.html(jIkariamVersion.html() + ` (GM: ${fancyVersion})`);
+
+  jQuery("#breadcrumbs").append("<button id='multipleStepStuff'>Do Stuff</button>");
+  jQuery("#multipleStepStuff").on("click", function () {
+    multipleStepStuff();
+  });
 } catch (e) {
   selfConsole.log(e);
 }
 
 /* Injector Functions */
+
+function multipleStepStuff(){
+  
+ajaxHandlerCall(jQuery("#GF_toolbar a[title='Highscore']").attr("href"));
+
+ajaxHandlerCall(jQuery("#js_GlobalMenu_ambrosia").attr("href"));
+ajaxHandlerCall("?view=inventory");
+
+// ajaxHandlerCall(jQuery("#js_CityPosition17Link").attr("href"));
+
+ajaxHandlerCall("?action=PiracyScreen&function=capture&buildingLevel=17&view=pirateFortress&cityId=" + ikariam.getScreen().screenId + "&position=17");
+
+}
 
 function unitStuff() {
   if (jQuery("#unitConstructionList").length > 0) {
