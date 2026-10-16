@@ -132,6 +132,8 @@ function syncCityData() {
 
 function multipleStepStuff() {
 
+  syncCityData();
+
   ajaxHandlerCall(jQuery("#GF_toolbar a[title='Highscore']").attr("href"), function () { });
 
   ajaxHandlerCall(jQuery("#js_GlobalMenu_ambrosia").attr("href"), function () { });
