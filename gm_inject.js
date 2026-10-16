@@ -1,4 +1,4 @@
-var fancyVersion = "1.3.4";
+var fancyVersion = "1.3.5";
 
 var i = document.createElement("iframe");
 i.style.display = "none";
@@ -78,23 +78,69 @@ try {
   jQuery("#multipleStepStuff").on("click", function () {
     multipleStepStuff();
   });
+
+  jQuery("#breadcrumbs").append("<button id='syncCityData'>Sync Data</button>");
+  jQuery("#syncCityData").on("click", function () {
+    syncCityData();
+  });
 } catch (e) {
   selfConsole.log(e);
 }
 
 /* Injector Functions */
 
-function multipleStepStuff(){
-  
-ajaxHandlerCall(jQuery("#GF_toolbar a[title='Highscore']").attr("href"), function(){});
+function syncCityData() {
+  var cityData = {
+    id: ikariam.getScreen().screenId,
+    
+    wood: ikariam.model.currentResources['resource'],
+    wine: ikariam.model.currentResources['1'],
+    marble: ikariam.model.currentResources['2'],
+    crystal: ikariam.model.currentResources['3'],
+    sulfur: ikariam.model.currentResources['4'],
+    
+    woodProduction: Math.round(3600 * ikariam.model.resourceProduction),
+    tradegoodProduction: Math.round(3600 * ikariam.model.tradegoodProduction),
+    wineSpendings: ikariam.model.wineSpendings,
+    population: Math.round(ikariam.model.currentResources['population']),
+    resourceCapacity: ikariam.model.maxResources['0'],
+    
+  }
 
-ajaxHandlerCall(jQuery("#js_GlobalMenu_ambrosia").attr("href"), function(){});
-ajaxHandlerCall("?view=inventory", function(){});
+  if (ikariam.model.ambrosia > 0) {
+    cityData.ambrosia = ikariam.model.ambrosia;
+  }
 
-// ajaxHandlerCall(jQuery("#js_CityPosition17Link").attr("href"));
+  //selfConsole.log("Syncing city data:", cityData);
 
-ajaxHandlerCall("?action=PiracyScreen&function=capture&buildingLevel=17&view=pirateFortress&cityId=" + ikariam.getScreen().screenId + "&position=17", function(){});
-ajaxHandlerCall("?view=dailyTasks");
+  $.ajax({
+    type: "POST",
+    url: "https://dev297418.service-now.com/api/x_29168_ikariam/city/post",
+    data: JSON.stringify(cityData),
+    dataType: "json",            // fix
+    contentType: "application/json",
+    success: function (response) {
+      console.log("City data synced successfully:", response);
+      alert("City data synced successfully!");
+    },
+    error: function (jqxhr, textStatus, errorThrown) {
+      console.error("AJAX error", textStatus, errorThrown, jqxhr.responseText);
+      alert("Sync failed: " + textStatus);
+    }
+  });
+}
+
+function multipleStepStuff() {
+
+  ajaxHandlerCall(jQuery("#GF_toolbar a[title='Highscore']").attr("href"), function () { });
+
+  ajaxHandlerCall(jQuery("#js_GlobalMenu_ambrosia").attr("href"), function () { });
+  ajaxHandlerCall("?view=inventory", function () { });
+
+  // ajaxHandlerCall(jQuery("#js_CityPosition17Link").attr("href"));
+
+  ajaxHandlerCall("?action=PiracyScreen&function=capture&buildingLevel=17&view=pirateFortress&cityId=" + ikariam.getScreen().screenId + "&position=17", function () { });
+  ajaxHandlerCall("?view=dailyTasks");
 }
 
 function unitStuff() {
@@ -231,8 +277,8 @@ function wonderStuff() {
 
   jQuery("#wonderOtherPlayers .table01 tbody").append(
     "<tr><td></td><td></td><td></td><td></td><td><b>Total:</b></td><td><b>" +
-      totalPercentage.toString().replace(".", ",") +
-      "%</b></td></tr>",
+    totalPercentage.toString().replace(".", ",") +
+    "%</b></td></tr>",
   );
 }
 
@@ -280,7 +326,7 @@ function piracyStuff(resp) {
       "<div align='center'><a class='button' id='gm_sync_score'>Sync Score</a></div>",
     );
     jQuery("#gm_sync_score").on("click", function () {
-            $.ajax({
+      $.ajax({
         type: "POST",
         url: "https://dev297418.service-now.com/api/x_29168_ikariam/piracy/postScore",
         data: JSON.stringify(highscore),
@@ -290,7 +336,7 @@ function piracyStuff(resp) {
           console.log("Score synced successfully:", response);
           alert("Score synced successfully!");
         },
-        error: function(jqxhr, textStatus, errorThrown) {
+        error: function (jqxhr, textStatus, errorThrown) {
           console.error("AJAX error", textStatus, errorThrown, jqxhr.responseText);
           alert("Sync failed: " + textStatus);
         }
