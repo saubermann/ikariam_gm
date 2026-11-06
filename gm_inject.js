@@ -1,4 +1,4 @@
-var fancyVersion = "1.3.5";
+var fancyVersion = "1.3.6";
 
 var i = document.createElement("iframe");
 i.style.display = "none";
@@ -92,7 +92,9 @@ try {
 function syncCityData() {
   var cityData = {
     id: ikariam.getScreen().screenId,
-    
+    city: ikariam.model.relatedCityData['city_' + ikariam.getScreen().screenId].name,
+	coords: ikariam.model.relatedCityData['city_' + ikariam.getScreen().screenId].coords,
+	user: jQuery('.avatarName > a:nth-child(2)').html().trim(),
     wood: ikariam.model.currentResources['resource'],
     wine: ikariam.model.currentResources['1'],
     marble: ikariam.model.currentResources['2'],
@@ -115,10 +117,12 @@ function syncCityData() {
 
   $.ajax({
     type: "POST",
-    url: "https://dev297418.service-now.com/api/x_29168_ikariam/city/post",
+    url: "https://citdfdk2bcavoe3c7slyklgvlm0izytg.lambda-url.eu-central-1.on.aws/cities",
+	// url: "https://dev297418.service-now.com/api/x_29168_ikariam/city/post",
     data: JSON.stringify(cityData),
     dataType: "json",            // fix
     contentType: "application/json",
+	headers: { "x-api-key": "!adwh234zyhg@%HKKasfjaaaa1" },
     success: function (response) {
       console.log("City data synced successfully:", response);
       alert("City data synced successfully!");
