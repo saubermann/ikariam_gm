@@ -145,7 +145,7 @@ function multipleStepStuff() {
 
   // ajaxHandlerCall(jQuery("#js_CityPosition17Link").attr("href"));
 
-  ajaxHandlerCall("?action=PiracyScreen&function=capture&buildingLevel=17&view=pirateFortress&cityId=" + ikariam.getScreen().screenId + "&position=17", function () { });
+  //ajaxHandlerCall("?action=PiracyScreen&function=capture&buildingLevel=17&view=pirateFortress&cityId=" + ikariam.getScreen().screenId + "&position=17", function () { });
   ajaxHandlerCall("?view=dailyTasks");
 }
 
